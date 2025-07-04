@@ -1,3 +1,17 @@
-yfinance==0.2.64
+# Core data analysis libraries
 pandas==2.3.0
 numpy==2.3.1
+
+# Financial data APIs
+polygon-api-client==1.14.6  # Primary: Polygon.io for 60+ days of data
+alpha_vantage==3.0.0         # Alternative: Alpha Vantage (limited free tier)
+yfinance==0.2.64             # Alternative: Yahoo Finance (7 days only)
+
+# HTTP and web libraries (dependencies)
+requests==2.32.4
+aiohttp==3.12.13
+websockets==14.2
+
+# Additional utilities
+certifi==2025.6.15
+urllib3==2.5.0
