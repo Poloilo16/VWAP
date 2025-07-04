@@ -1,0 +1,58 @@
+VWAP Strategy Definition
+========================
+
+Strategy Overview:
+- Enter a long position if the 9:31am candle's close is above VWAP
+- Enter a short position if the 9:31am candle's close is below VWAP
+- VWAP is calculated as the value weighted average price
+- VWAP is recalculated every minute during regular market hours (9:30–16:00 ET)
+- Use 100% of account equity for each trade (no leverage)
+
+Entry Rules:
+- Only enter positions based on 9:31am candle close vs VWAP
+- Long: 9:31am close > VWAP
+- Short: 9:31am close < VWAP
+
+Stop Loss Rules:
+- For longs: exit if any future candle closes below VWAP
+- For shorts: exit if any future candle closes above VWAP
+
+Exit Rules:
+- Stop loss as defined above
+- Exit all remaining positions at market close (4:00pm ET)
+
+Position Grouping for Imbalance Analysis:
+- Classify every 1-minute candle as:
+  * Above VWAP if the previous candle's close > VWAP
+  * Below VWAP if the previous candle's close < VWAP
+- Use this to assess trend bias and market imbalance
+
+Data and Constraints:
+- Use only regular trading hours (exclude pre/post-market)
+- Trading hours: 9:30am - 4:00pm ET
+- Apply commission of $0.0005 per share
+- Assume no slippage up to ~$2M in capital
+- Note: Not scalable to multi-million-dollar institutional sizes
+
+Backtesting Requirements:
+- Test on both QQQ and TQQQ
+- Log entry and exit timestamps and prices
+- Log VWAP at entry
+- Track if stop hit or held to close
+- Record position direction (long/short)
+- Calculate profit/loss per trade
+- Output cumulative equity curve
+- Calculate drawdowns
+- Generate basic trade statistics (win rate, average return, max DD)
+
+Position Sizing:
+- Use 100% of account equity for each trade
+- No leverage applied
+- Commission: $0.0005 per share
+
+VWAP Calculation:
+VWAP = Σ(Price × Volume) / Σ(Volume)
+Where:
+- Price = Typical Price = (High + Low + Close) / 3
+- Calculation is cumulative from market open (9:30am) each day
+- Resets daily at market open
