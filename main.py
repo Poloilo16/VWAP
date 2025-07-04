@@ -93,61 +93,13 @@ def download_polygon_data(symbol, start_date, end_date, max_retries=3):
     print(f"    ✗ Failed to download data after {max_retries} attempts")
     return pd.DataFrame()
 
-# Alternative: Create sample data if API fails
-def create_sample_data(symbol, start_date, end_date):
-    """
-    Create sample 1-minute data for demonstration purposes
-    """
-    print(f"  Creating sample data for demonstration...")
-    
-    # Generate sample timestamps (market hours only: 9:30 AM - 4:00 PM ET)
-    dates = pd.date_range(start=start_date, end=end_date, freq='D')
-    market_dates = [d for d in dates if d.weekday() < 5]  # Weekdays only
-    
-    all_data = []
-    base_price = 500.0 if symbol == 'QQQ' else 75.0  # Different base prices
-    
-    for date in market_dates:
-        # Market hours: 9:30 AM to 4:00 PM ET (390 minutes)
-        market_start = date.replace(hour=9, minute=30)
-        market_end = date.replace(hour=16, minute=0)
-        
-        timestamps = pd.date_range(start=market_start, end=market_end, freq='1min')[:-1]
-        
-        for i, ts in enumerate(timestamps):
-            # Simple random walk for sample data
-            import numpy as np
-            price_change = (np.random.randn() * 0.1)
-            price = base_price + price_change
-            
-            all_data.append({
-                'Datetime': ts,
-                'Symbol': symbol,
-                'Open': round(price + np.random.randn() * 0.05, 2),
-                'High': round(price + abs(np.random.randn()) * 0.1, 2),
-                'Low': round(price - abs(np.random.randn()) * 0.1, 2),
-                'Close': round(price, 2),
-                'Volume': int(np.random.randint(1000, 10000))
-            })
-            
-            base_price = price  # For next iteration
-    
-    df = pd.DataFrame(all_data)
-    print(f"    ✓ Created {len(df)} sample bars")
-    return df
-
 # Download data for each symbol
 for symbol_idx, symbol in enumerate(symbols):
     print(f"\nDownloading data for {symbol}...")
     
     try:
-        # Try to download real data from Polygon.io
+        # Download real data from Polygon.io
         data = download_polygon_data(symbol, start_date, end_date)
-        
-        # If API fails, create sample data for demonstration
-        if data.empty:
-            print(f"  API download failed, creating sample data for demonstration...")
-            data = create_sample_data(symbol, start_date, end_date)
         
         if not data.empty:
             # Ensure datetime is properly formatted
@@ -164,7 +116,7 @@ for symbol_idx, symbol in enumerate(symbols):
             
             if not data.empty:
                 # Save to CSV
-                filename = f'data/{symbol}_60day_1min_data.csv'
+                filename = f'{symbol}_60day_1min_data.csv'
                 data.to_csv(filename, index=False)
                 
                 print(f"✓ Downloaded {len(data)} bars for {symbol}")
@@ -195,38 +147,22 @@ for symbol_idx, symbol in enumerate(symbols):
         print(f"Waiting 15 seconds to respect rate limits (5 calls/minute)...")
         time.sleep(15)
 
-print(f"\nDownload complete! Data saved in 'data/' directory.")
+print(f"\nDownload complete!")
 
 # Show summary of downloaded files
 print("\nSummary of downloaded files:")
-if os.path.exists('data'):
-    for file in sorted(os.listdir('data')):
-        if file.endswith('.csv'):
-            filepath = os.path.join('data', file)
-            df = pd.read_csv(filepath)
-            if not df.empty:
-                df['Datetime'] = pd.to_datetime(df['Datetime'])
-                unique_days = df['Datetime'].dt.date.nunique()
-                total_days = (df['Datetime'].max() - df['Datetime'].min()).days
-                date_range = f"{df['Datetime'].min().date()} to {df['Datetime'].max().date()}"
-                print(f"  {file}: {len(df)} rows, {unique_days} trading days over {total_days} calendar days ({date_range})")
-            else:
-                print(f"  {file}: Empty file")
-else:
-    print("  No data directory found.")
+for symbol in symbols:
+    filename = f'{symbol}_60day_1min_data.csv'
+    if os.path.exists(filename):
+        df = pd.read_csv(filename)
+        if not df.empty:
+            df['Datetime'] = pd.to_datetime(df['Datetime'])
+            unique_days = df['Datetime'].dt.date.nunique()
+            total_days = (df['Datetime'].max() - df['Datetime'].min()).days
+            date_range = f"{df['Datetime'].min().date()} to {df['Datetime'].max().date()}"
+            print(f"  {filename}: {len(df)} rows, {unique_days} trading days over {total_days} calendar days ({date_range})")
+        else:
+            print(f"  {filename}: Empty file")
+    else:
+        print(f"  {filename}: File not found")
 
-print(f"\n" + "="*80)
-print(f"POLYGON.IO API INFORMATION:")
-print(f"="*80)
-print(f"• Free Tier: 5 API calls per minute, 2 years of historical data")
-print(f"• Get free API key: https://polygon.io/dashboard")
-print(f"• Documentation: https://polygon.io/docs/stocks/getting-started")
-print(f"• Current API key: {API_KEY}")
-print(f"")
-print(f"If using DEMO_KEY or API fails:")
-print(f"1. Sign up for free at: https://polygon.io/dashboard")
-print(f"2. Replace API_KEY in this script with your key")
-print(f"3. Re-run the script to get real market data")
-print(f"")
-print(f"Sample data is provided for demonstration if API is unavailable.")
-print(f"="*80)
